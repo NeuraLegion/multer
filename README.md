@@ -1,4 +1,4 @@
-# Multer [![Build Status](https://travis-ci.org/expressjs/multer.svg?branch=master)](https://travis-ci.org/expressjs/multer) [![NPM version](https://badge.fury.io/js/multer.svg)](https://badge.fury.io/js/multer) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+# Multer
 
 Multer is a node.js middleware for handling `multipart/form-data`, which is primarily used for uploading files. It is written
 on top of [busboy](https://github.com/mscdex/busboy) for maximum efficiency.
@@ -8,7 +8,7 @@ on top of [busboy](https://github.com/mscdex/busboy) for maximum efficiency.
 ## Installation
 
 ```sh
-npm install --save multer
+npm install --save @neuralegion/multer
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ Multer adds a `body` object and a `file` or `files` object to the `request` obje
 Basic usage example:
 
 ```javascript
-const { Multer } = require('multer')
+const { Multer } = require('@neuralegion/multer')
 const express = require('express')
 
 const app = express()
@@ -49,7 +49,7 @@ app.post('/cool-profile', cpUpload, (req, res, next) => {
 In case you need to handle a text-only multipart form, you can use the `.none()` method, example:
 
 ```javascript
-const { Multer } = require('multer')
+const { Multer } = require('@neuralegion/multer')
 const express = require('express')
 
 const app = express()
