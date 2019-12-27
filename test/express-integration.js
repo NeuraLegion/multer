@@ -1,15 +1,12 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-
-const multer = require('../')
+const { Multer } = require('../lib')
 const util = require('./_util')
-
 const pify = require('pify')
 const express = require('express')
 const FormData = require('form-data')
 const getStream = require('get-stream')
-
 const onFinished = pify(require('on-finished'))
 
 const port = 34279
@@ -44,7 +41,7 @@ describe('Express Integration', () => {
 
   it('should work with express error handling', async () => {
     const limits = { fileSize: 200 }
-    const upload = multer({ limits: limits })
+    const upload = new Multer({ limits: limits })
     const router = new express.Router()
     const form = new FormData()
 
@@ -76,7 +73,7 @@ describe('Express Integration', () => {
   })
 
   it('should work when uploading a file', async () => {
-    const upload = multer()
+    const upload = new Multer()
     const router = new express.Router()
     const form = new FormData()
 

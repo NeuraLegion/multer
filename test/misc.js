@@ -1,15 +1,14 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-
 const util = require('./_util')
-const multer = require('../')
+const { Multer } = require('../lib')
 const FormData = require('form-data')
 
 describe('Misc', () => {
   it('should handle unicode filenames', async () => {
     const form = new FormData()
-    const parser = multer().single('file')
+    const parser = new Multer().single('file')
     const filename = '\ud83d\udca9.dat'
 
     form.append('file', util.file('small'), { filename: filename })
@@ -23,7 +22,7 @@ describe('Misc', () => {
 
   it('should handle absent filenames', async () => {
     const form = new FormData()
-    const parser = multer().single('file')
+    const parser = new Multer().single('file')
     const stream = util.file('small')
 
     // Don't let FormData figure out a filename
@@ -40,7 +39,7 @@ describe('Misc', () => {
   })
 
   it('should present files in same order as they came', async () => {
-    const parser = multer().array('themFiles', 2)
+    const parser = new Multer().array('themFiles', 2)
     const form = new FormData()
 
     form.append('themFiles', util.file('small'))
@@ -56,7 +55,7 @@ describe('Misc', () => {
   })
 
   it('should accept multiple requests', async () => {
-    const parser = multer().array('them-files')
+    const parser = new Multer().array('them-files')
 
     async function submitData (fileCount) {
       const form = new FormData()
@@ -75,8 +74,8 @@ describe('Misc', () => {
   })
 
   it('should give error on old options', () => {
-    assert.throws(() => multer({ dest: '/tmp' }))
-    assert.throws(() => multer({ storage: {} }))
-    assert.throws(() => multer({ fileFilter: () => {} }))
+    assert.throws(() => new Multer({ dest: '/tmp' }))
+    assert.throws(() => new Multer({ storage: {} }))
+    assert.throws(() => new Multer({ fileFilter: () => {} }))
   })
 })

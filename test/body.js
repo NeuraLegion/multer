@@ -2,10 +2,9 @@
 
 const assert = require('assert')
 const stream = require('stream')
-
 const pify = require('pify')
 const util = require('./_util')
-const multer = require('../')
+const { Multer } = require('../lib')
 const FormData = require('form-data')
 const testData = require('testdata-w3c-json-form')
 const recursiveNullify = require('recursive-nullify')
@@ -14,7 +13,7 @@ describe('body', () => {
   let parser
 
   before(() => {
-    parser = multer().none()
+    parser = new Multer().none()
   })
 
   it('should process multiple fields', async () => {

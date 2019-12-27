@@ -1,12 +1,11 @@
 /* eslint-env mocha */
 
 const util = require('./_util')
-const multer = require('../')
-
-const assertRejects = require('assert-rejects')
+const { Multer, Codes } = require('../lib')
 const FormData = require('form-data')
 const PassThrough = require('stream').PassThrough
 const pify = require('pify')
+const assert = require('assert')
 
 function getLength (form) {
   return pify(form.getLength).call(form)
@@ -38,7 +37,7 @@ function createAbortStream (maxBytes) {
 describe('Aborted requests', () => {
   it('should handle clients aborting the request', async () => {
     const form = new FormData()
-    const parser = multer().single('file')
+    const parser = new Multer().single('file')
 
     form.append('file', util.file('small'))
 
@@ -52,6 +51,6 @@ describe('Aborted requests', () => {
 
     const result = pify(parser)(form.pipe(req), null)
 
-    return assertRejects(result, err => err.code === 'CLIENT_ABORTED')
+    return assert.rejects(result, err => err.code === Codes.CLIENT_CLOSED_REQUEST)
   })
 })

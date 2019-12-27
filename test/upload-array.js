@@ -1,17 +1,15 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-const assertRejects = require('assert-rejects')
 const FormData = require('form-data')
-
-const multer = require('../')
+const { Multer } = require('../lib')
 const util = require('./_util')
 
 describe('upload.array', () => {
   let parser
 
   before(() => {
-    parser = multer().array('files', 3)
+    parser = new Multer().array('files', 3)
   })
 
   it('should accept single file', async () => {
@@ -55,7 +53,7 @@ describe('upload.array', () => {
     form.append('files', util.file('small'))
     form.append('files', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
       (err) => err.code === 'LIMIT_FILE_COUNT' && err.field === 'files'
     )
@@ -67,7 +65,7 @@ describe('upload.array', () => {
     form.append('name', 'Multer')
     form.append('unexpected', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
       (err) => err.code === 'LIMIT_UNEXPECTED_FILE' && err.field === 'unexpected'
     )

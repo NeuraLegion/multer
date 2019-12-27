@@ -1,15 +1,14 @@
 /* eslint-env mocha */
 
-const assertRejects = require('assert-rejects')
 const FormData = require('form-data')
 const pify = require('pify')
+const assert = require('assert')
 const stream = require('stream')
-
 const util = require('./_util')
-const multer = require('../')
+const { Multer, Codes } = require('../lib')
 
 function withLimits (limits, fields) {
-  return multer({ limits: limits }).fields(fields)
+  return new Multer({ limits: limits }).fields(fields)
 }
 
 function hasCode (code) {
@@ -17,7 +16,9 @@ function hasCode (code) {
 }
 
 function hasCodeAndField (code, field) {
-  return (err) => err.code === code && err.field === field
+  return (err) => {
+    return err.code === code && err.field === field
+  }
 }
 
 function hasMessage (message) {
@@ -34,9 +35,9 @@ describe('Error Handling', () => {
     form.append('field0', 'BOOM!')
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_PART_COUNT')
+      hasCode(Codes.LIMIT_PART_COUNT)
     )
   })
 
@@ -50,9 +51,9 @@ describe('Error Handling', () => {
     form.append('tiny', util.file('tiny'))
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCodeAndField('LIMIT_FILE_SIZE', 'small')
+      hasCodeAndField(Codes.LIMIT_FILE_SIZE, 'small')
     )
   })
 
@@ -66,9 +67,9 @@ describe('Error Handling', () => {
     form.append('small', util.file('small'))
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_FILE_COUNT')
+      hasCode(Codes.LIMIT_FILE_COUNT)
     )
   })
 
@@ -80,9 +81,9 @@ describe('Error Handling', () => {
 
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_FIELD_KEY')
+      hasCode(Codes.LIMIT_FIELD_KEY)
     )
   })
 
@@ -93,9 +94,9 @@ describe('Error Handling', () => {
     form.append('ok', 'SMILE')
     form.append('blowup', 'BOOM!')
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_FIELD_KEY')
+      hasCode(Codes.LIMIT_FIELD_KEY)
     )
   })
 
@@ -106,9 +107,9 @@ describe('Error Handling', () => {
     form.append('field0', 'This is okay')
     form.append('field1', 'This will make the parser explode')
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCodeAndField('LIMIT_FIELD_VALUE', 'field1')
+      hasCodeAndField(Codes.LIMIT_FIELD_VALUE, 'field1')
     )
   })
 
@@ -119,9 +120,9 @@ describe('Error Handling', () => {
     form.append('field0', 'BOOM!')
     form.append('field1', 'BOOM!')
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_FIELD_COUNT')
+      hasCode(Codes.LIMIT_FIELD_COUNT)
     )
   })
 
@@ -133,15 +134,15 @@ describe('Error Handling', () => {
 
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCodeAndField('LIMIT_UNEXPECTED_FILE', 'small')
+      hasCodeAndField(Codes.LIMIT_UNEXPECTED_FILE, 'small')
     )
   })
 
   it('should report errors from busboy constructor', async () => {
     const req = new stream.PassThrough()
-    const upload = multer().single('tiny')
+    const upload = new Multer().single('tiny')
     const body = 'test'
 
     req.headers = {
@@ -151,7 +152,7 @@ describe('Error Handling', () => {
 
     req.end(body)
 
-    await assertRejects(
+    await assert.rejects(
       pify(upload)(req, null),
       hasMessage('Multipart: Boundary not found')
     )
@@ -159,7 +160,7 @@ describe('Error Handling', () => {
 
   it('should report errors from busboy parsing', async () => {
     const req = new stream.PassThrough()
-    const upload = multer().single('tiny')
+    const upload = new Multer().single('tiny')
     const boundary = 'AaB03x'
     const body = [
       `--${boundary}`,
@@ -176,7 +177,7 @@ describe('Error Handling', () => {
 
     req.end(body)
 
-    await assertRejects(
+    await assert.rejects(
       pify(upload)(req, null),
       hasMessage('Unexpected end of multipart data')
     )
@@ -191,9 +192,9 @@ describe('Error Handling', () => {
     form.append('small', util.file('small'))
     form.append('small', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
-      hasCode('LIMIT_FILE_SIZE')
+      hasCode(Codes.LIMIT_FILE_SIZE)
     )
   })
 })

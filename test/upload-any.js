@@ -2,15 +2,14 @@
 
 const assert = require('assert')
 const FormData = require('form-data')
-
-const multer = require('../')
+const { Multer } = require('../lib')
 const util = require('./_util')
 
 describe('upload.any', () => {
   let parser
 
   before(() => {
-    parser = multer().any()
+    parser = new Multer().any()
   })
 
   it('should accept single file', async () => {

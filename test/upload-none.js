@@ -1,22 +1,20 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
-const assertRejects = require('assert-rejects')
 const FormData = require('form-data')
-
-const multer = require('../')
+const { Multer } = require('../lib')
 const util = require('./_util')
 
 describe('upload.none', () => {
   let parser
 
   before(() => {
-    parser = multer().none()
+    parser = new Multer().none()
   })
 
   it('should handle text fields', async () => {
     const form = new FormData()
-    const parser = multer().none()
+    const parser = new Multer().none()
 
     form.append('foo', 'bar')
     form.append('test', 'yes')
@@ -35,7 +33,7 @@ describe('upload.none', () => {
     form.append('name', 'Multer')
     form.append('file', util.file('small'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
       (err) => err.code === 'LIMIT_UNEXPECTED_FILE' && err.field === 'file'
     )
@@ -48,7 +46,7 @@ describe('upload.none', () => {
     form.append('file', util.file('tiny'))
     form.append('file', util.file('tiny'))
 
-    await assertRejects(
+    await assert.rejects(
       util.submitForm(parser, form),
       (err) => err.code === 'LIMIT_UNEXPECTED_FILE' && err.field === 'file'
     )
