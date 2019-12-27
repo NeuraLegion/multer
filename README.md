@@ -1,22 +1,14 @@
-# Multer [![Build Status](https://travis-ci.org/expressjs/multer.svg?branch=master)](https://travis-ci.org/expressjs/multer) [![NPM version](https://badge.fury.io/js/multer.svg)](https://badge.fury.io/js/multer) [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](https://github.com/feross/standard)
+# Multer
 
 Multer is a node.js middleware for handling `multipart/form-data`, which is primarily used for uploading files. It is written
 on top of [busboy](https://github.com/mscdex/busboy) for maximum efficiency.
 
 **NOTE**: Multer will not process any form which is not multipart (`multipart/form-data`).
 
-## Translations 
-
-This README is also available in other languages:
-
-- [简体中文](https://github.com/expressjs/multer/blob/master/doc/README-zh-cn.md) (Chinese)
-- [한국어](https://github.com/expressjs/multer/blob/master/doc/README-ko.md) (Korean)
-- [Русский язык](https://github.com/expressjs/multer/blob/master/doc/README-ru.md) (Russian)
-
 ## Installation
 
 ```sh
-$ npm install --save multer
+npm install --save @neuralegion/multer
 ```
 
 ## Usage
@@ -25,33 +17,25 @@ Multer adds a `body` object and a `file` or `files` object to the `request` obje
 
 Basic usage example:
 
-Don't forget the `enctype="multipart/form-data"` in your form.
-
-```html
-<form action="/profile" method="post" enctype="multipart/form-data">
-  <input type="file" name="avatar" />
-</form>
-```
-
 ```javascript
-var express = require('express')
-var multer  = require('multer')
-var upload = multer({ dest: 'uploads/' })
+const { Multer } = require('@neuralegion/multer')
+const express = require('express')
 
-var app = express()
+const app = express()
+const upload = new Multer()
 
-app.post('/profile', upload.single('avatar'), function (req, res, next) {
+app.post('/profile', upload.single('avatar'), (req, res, next) => {
   // req.file is the `avatar` file
   // req.body will hold the text fields, if there were any
 })
 
-app.post('/photos/upload', upload.array('photos', 12), function (req, res, next) {
+app.post('/photos/upload', upload.array('photos', 12), (req, res, next) => {
   // req.files is array of `photos` files
   // req.body will contain the text fields, if there were any
 })
 
-var cpUpload = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
-app.post('/cool-profile', cpUpload, function (req, res, next) {
+const cpUpload = upload.fields([{ name: 'avatar', maxCount: 1 }, { name: 'gallery', maxCount: 8 }])
+app.post('/cool-profile', cpUpload, (req, res, next) => {
   // req.files is an object (String -> Array) where fieldname is the key, and the value is array of files
   //
   // e.g.
@@ -62,15 +46,16 @@ app.post('/cool-profile', cpUpload, function (req, res, next) {
 })
 ```
 
-In case you need to handle a text-only multipart form, you should use the `.none()` method:
+In case you need to handle a text-only multipart form, you can use the `.none()` method, example:
 
 ```javascript
-var express = require('express')
-var app = express()
-var multer  = require('multer')
-var upload = multer()
+const { Multer } = require('@neuralegion/multer')
+const express = require('express')
 
-app.post('/profile', upload.none(), function (req, res, next) {
+const app = express()
+const upload = new Multer()
+
+app.post('/profile', upload.none(), (req, res, next) => {
   // req.body contains the text fields
 })
 ```
@@ -81,46 +66,27 @@ app.post('/profile', upload.none(), function (req, res, next) {
 
 Each file contains the following information:
 
-Key | Description | Note
---- | --- | ---
-`fieldname` | Field name specified in the form |
-`originalname` | Name of the file on the user's computer |
-`encoding` | Encoding type of the file |
-`mimetype` | Mime type of the file |
-`size` | Size of the file in bytes |
-`destination` | The folder to which the file has been saved | `DiskStorage`
-`filename` | The name of the file within the `destination` | `DiskStorage`
-`path` | The full path to the uploaded file | `DiskStorage`
-`buffer` | A `Buffer` of the entire file | `MemoryStorage`
-
-### `multer(opts)`
-
-Multer accepts an options object, the most basic of which is the `dest`
-property, which tells Multer where to upload the files. In case you omit the
-options object, the files will be kept in memory and never written to disk.
-
-By default, Multer will rename the files so as to avoid naming conflicts. The
-renaming function can be customized according to your needs.
-
-The following are the options that can be passed to Multer.
-
 Key | Description
 --- | ---
-`dest` or `storage` | Where to store the files
-`fileFilter` | Function to control which files are accepted
-`limits` | Limits of the uploaded data
-`preservePath` | Keep the full path of files instead of just the base name
+`fieldName` | Field name specified in the form
+`originalName` | Name of the file on the user's computer (`undefined` if no filename was supplied by the client)
+`size` | Size of the file in bytes
+`stream` | Stream of file
+`detectedMimeType` | The detected mime-type, or null if we failed to detect
+`detectedFileExtension` | The typical file extension for files of the detected type, or empty string if we failed to detect (with leading `.` to match `path.extname`)
+`clientReportedMimeType` | The mime type reported by the client using the `Content-Type` header, or null<sup>1</sup> if the header was absent
+`clientReportedFileExtension` | The extension of the file uploaded (as reported by `path.extname`)
 
-In an average web app, only `dest` might be required, and configured as shown in
-the following example.
+<sup>1</sup> Currently returns `text/plain` if header is absent, this is a bug and it will be fixed in a patch release. Do not rely on this behavior.
 
-```javascript
-var upload = multer({ dest: 'uploads/' })
-```
+### `new Multer(opts)`
 
-If you want more control over your uploads, you'll want to use the `storage`
-option instead of `dest`. Multer ships with storage engines `DiskStorage`
-and `MemoryStorage`; More engines are available from third parties.
+Multer accepts an options object, the following are the options that can be
+passed to Multer.
+
+Key      | Description
+-------- | -----------
+`limits` | Limits of the uploaded data [(full description)](#limits)
 
 #### `.single(fieldname)`
 
@@ -151,7 +117,7 @@ Example:
 #### `.none()`
 
 Accept only text fields. If any file upload is made, error with code
-"LIMIT\_UNEXPECTED\_FILE" will be issued.
+"LIMIT\_UNEXPECTED\_FILE" will be issued. This is the same as doing `upload.fields([])`.
 
 #### `.any()`
 
@@ -163,67 +129,6 @@ Never add multer as a global middleware since a malicious user could upload
 files to a route that you didn't anticipate. Only use this function on routes
 where you are handling the uploaded files.
 
-### `storage`
-
-#### `DiskStorage`
-
-The disk storage engine gives you full control on storing files to disk.
-
-```javascript
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, '/tmp/my-uploads')
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + '-' + Date.now())
-  }
-})
-
-var upload = multer({ storage: storage })
-```
-
-There are two options available, `destination` and `filename`. They are both
-functions that determine where the file should be stored.
-
-`destination` is used to determine within which folder the uploaded files should
-be stored. This can also be given as a `string` (e.g. `'/tmp/uploads'`). If no
-`destination` is given, the operating system's default directory for temporary
-files is used.
-
-**Note:** You are responsible for creating the directory when providing
-`destination` as a function. When passing a string, multer will make sure that
-the directory is created for you.
-
-`filename` is used to determine what the file should be named inside the folder.
-If no `filename` is given, each file will be given a random name that doesn't
-include any file extension.
-
-**Note:** Multer will not append any file extension for you, your function
-should return a filename complete with an file extension.
-
-Each function gets passed both the request (`req`) and some information about
-the file (`file`) to aid with the decision.
-
-Note that `req.body` might not have been fully populated yet. It depends on the
-order that the client transmits fields and files to the server.
-
-#### `MemoryStorage`
-
-The memory storage engine stores the files in memory as `Buffer` objects. It
-doesn't have any options.
-
-```javascript
-var storage = multer.memoryStorage()
-var upload = multer({ storage: storage })
-```
-
-When using memory storage, the file info will contain a field called
-`buffer` that contains the entire file.
-
-**WARNING**: Uploading very large files, or relatively small files in large
-numbers very quickly, can cause your application to run out of memory when
-memory storage is used.
-
 ### `limits`
 
 An object specifying the size limits of the following optional properties. Multer passes this object into busboy directly, and the details of the properties can be found on [busboy's page](https://github.com/mscdex/busboy#busboy-methods).
@@ -233,7 +138,7 @@ The following integer values are available:
 Key | Description | Default
 --- | --- | ---
 `fieldNameSize` | Max field name size | 100 bytes
-`fieldSize` | Max field value size (in bytes) | 1MB
+`fieldSize` | Max field value size | 1MB
 `fields` | Max number of non-file fields | Infinity
 `fileSize` | For multipart forms, the max file size (in bytes) | Infinity
 `files` | For multipart forms, the max number of file fields | Infinity
@@ -242,58 +147,25 @@ Key | Description | Default
 
 Specifying the limits can help protect your site against denial of service (DoS) attacks.
 
-### `fileFilter`
-
-Set this to a function to control which files should be uploaded and which
-should be skipped. The function should look like this:
-
-```javascript
-function fileFilter (req, file, cb) {
-
-  // The function should call `cb` with a boolean
-  // to indicate if the file should be accepted
-
-  // To reject this file pass `false`, like so:
-  cb(null, false)
-
-  // To accept the file pass `true`, like so:
-  cb(null, true)
-
-  // You can always pass an error if something goes wrong:
-  cb(new Error('I don\'t have a clue!'))
-
-}
-```
-
 ## Error handling
 
-When encountering an error, Multer will delegate the error to Express. You can
+When encountering an error, multer will delegate the error to express. You can
 display a nice error page using [the standard express way](http://expressjs.com/guide/error-handling.html).
 
-If you want to catch errors specifically from Multer, you can call the
-middleware function by yourself. Also, if you want to catch only [the Multer errors](https://github.com/expressjs/multer/blob/master/lib/multer-error.js), you can use the `MulterError` class that is attached to the `multer` object itself (e.g. `err instanceof multer.MulterError`).
+If you want to catch errors specifically from multer, you can call the
+middleware function by yourself.
 
 ```javascript
-var multer = require('multer')
-var upload = multer().single('avatar')
+const upload = new Multer().single('avatar')
 
-app.post('/profile', function (req, res) {
-  upload(req, res, function (err) {
-    if (err instanceof multer.MulterError) {
-      // A Multer error occurred when uploading.
-    } else if (err) {
-      // An unknown error occurred when uploading.
+app.post('/profile', (req, res) => {
+  upload(req, res, (err) => {
+    if (err) {
+      // An error occurred when uploading
+      return
     }
 
-    // Everything went fine.
+    // Everything went fine
   })
 })
 ```
-
-## Custom storage engine
-
-For information on how to build your own storage engine, see [Multer Storage Engine](https://github.com/expressjs/multer/blob/master/StorageEngine.md).
-
-## License
-
-[MIT](LICENSE)

@@ -1,14 +1,26 @@
 {
-  "name": "multer",
+  "name": "@neuralegion/multer",
   "description": "Middleware for handling `multipart/form-data`.",
-  "version": "1.4.2",
+  "version": "0.0.0",
   "contributors": [
     "Hage Yaapa <captain@hacksparrow.com> (http://www.hacksparrow.com)",
     "Jaret Pfluger <https://github.com/jpfluger>",
-    "Linus Unnebäck <linus@folkdatorn.se>"
+    "Linus Unnebäck <linus@folkdatorn.se>",
+    "Artem Derevnjuk <artem.derevnjuk@neuralegion.com>"
   ],
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeuraLegion/multer.git"
+  },
   "license": "MIT",
-  "repository": "expressjs/multer",
+  "bugs": {
+    "url": "https://github.com/NeuraLegion/multer/issues"
+  },
+  "homepage": "https://github.com/NeuraLegion/multer#readme",
   "keywords": [
     "form",
     "post",
@@ -20,33 +32,60 @@
   ],
   "dependencies": {
     "append-field": "^1.0.0",
-    "busboy": "^0.2.11",
-    "concat-stream": "^1.5.2",
-    "mkdirp": "^0.5.1",
-    "object-assign": "^4.1.1",
+    "busboy": "^0.3.1",
+    "fs-temp": "^1.1.1",
     "on-finished": "^2.3.0",
-    "type-is": "^1.6.4",
-    "xtend": "^4.0.0"
+    "pify": "^4.0.1",
+    "pump": "^3.0.0",
+    "stream-file-type": "^0.4.0",
+    "type-is": "^1.6.18"
   },
   "devDependencies": {
-    "express": "^4.13.1",
-    "form-data": "^1.0.0-rc1",
-    "fs-temp": "^1.1.2",
-    "mocha": "^3.5.3",
-    "rimraf": "^2.4.1",
-    "standard": "^11.0.1",
+    "@types/node": "^8.10.59",
+    "husky": "^3.0.7",
+    "lint-staged": "^9.4.1",
+    "semantic-release": "^15.13.27",
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "express": "^4.16.4",
+    "form-data": "^3.0.0",
+    "get-stream": "^5.1.0",
+    "hasha": "^5.1.0",
+    "mocha": "^6.1.4",
+    "recursive-nullify": "^1.0.0",
+    "standard": "^12.0.1",
     "testdata-w3c-json-form": "^1.0.0"
   },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged",
+      "post-commit": "git update-index --again"
+    }
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.{js}": [
+      "standard --fix",
+      "git add"
+    ]
+  },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">=10.18.0"
   },
   "files": [
     "LICENSE",
-    "index.js",
-    "storage/",
     "lib/"
   ],
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "scripts": {
-    "test": "standard && mocha"
+    "semantic-release": "semantic-release",
+    "test": "mocha",
+    "lint": "standard **/*.js"
   }
 }

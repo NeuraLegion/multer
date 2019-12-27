@@ -1,109 +1,104 @@
 /* eslint-env mocha */
 
-var assert = require('assert')
+const assert = require('assert')
+const { Multer } = require('../lib')
+const util = require('./_util')
+const pify = require('pify')
+const express = require('express')
+const FormData = require('form-data')
+const getStream = require('get-stream')
+const onFinished = pify(require('on-finished'))
 
-var multer = require('../')
-var util = require('./_util')
+const port = 34279
 
-var express = require('express')
-var FormData = require('form-data')
-var concat = require('concat-stream')
-var onFinished = require('on-finished')
+describe('Express Integration', () => {
+  let app, server
 
-var port = 34279
-
-describe('Express Integration', function () {
-  var app
-
-  before(function (done) {
+  before((done) => {
     app = express()
-    app.listen(port, done)
+    server = app.listen(port, done)
   })
 
-  function submitForm (form, path, cb) {
-    var req = form.submit('http://localhost:' + port + path)
+  after((done) => {
+    server.close(done)
+  })
 
-    req.on('error', cb)
-    req.on('response', function (res) {
-      res.on('error', cb)
-      res.pipe(concat({ encoding: 'buffer' }, function (body) {
-        onFinished(req, function () { cb(null, res, body) })
-      }))
+  function submitForm (form, path) {
+    return new Promise((resolve, reject) => {
+      const req = form.submit(`http://localhost:${port}${path}`)
+
+      req.on('error', reject)
+      req.on('response', (res) => {
+        res.on('error', reject)
+
+        const body = getStream.buffer(res)
+        const finished = onFinished(req)
+
+        resolve(Promise.all([body, finished]).then(([body]) => ({ res, body })))
+      })
     })
   }
 
-  it('should work with express error handling', function (done) {
-    var limits = { fileSize: 200 }
-    var upload = multer({ limits: limits })
-    var router = new express.Router()
-    var form = new FormData()
+  it('should work with express error handling', async () => {
+    const limits = { fileSize: 200 }
+    const upload = new Multer({ limits: limits })
+    const router = new express.Router()
+    const form = new FormData()
 
-    var routeCalled = 0
-    var errorCalled = 0
+    let routeCalled = 0
+    let errorCalled = 0
 
-    form.append('avatar', util.file('large.jpg'))
+    form.append('avatar', util.file('large'))
 
-    router.post('/profile', upload.single('avatar'), function (req, res, next) {
+    router.post('/profile', upload.single('avatar'), (req, res, next) => {
       routeCalled++
       res.status(200).end('SUCCESS')
     })
 
-    router.use(function (err, req, res, next) {
-      assert.equal(err.code, 'LIMIT_FILE_SIZE')
+    router.use((err, req, res, next) => {
+      assert.strictEqual(err.code, 'LIMIT_FILE_SIZE')
 
       errorCalled++
       res.status(500).end('ERROR')
     })
 
     app.use('/t1', router)
-    submitForm(form, '/t1/profile', function (err, res, body) {
-      assert.ifError(err)
 
-      assert.equal(routeCalled, 0)
-      assert.equal(errorCalled, 1)
-      assert.equal(body.toString(), 'ERROR')
-      assert.equal(res.statusCode, 500)
+    const result = await submitForm(form, '/t1/profile')
 
-      done()
-    })
+    assert.strictEqual(routeCalled, 0)
+    assert.strictEqual(errorCalled, 1)
+    assert.strictEqual(result.body.toString(), 'ERROR')
+    assert.strictEqual(result.res.statusCode, 500)
   })
 
-  it('should work when receiving error from fileFilter', function (done) {
-    function fileFilter (req, file, cb) {
-      cb(new Error('TEST'))
-    }
+  it('should work when uploading a file', async () => {
+    const upload = new Multer()
+    const router = new express.Router()
+    const form = new FormData()
 
-    var upload = multer({ fileFilter: fileFilter })
-    var router = new express.Router()
-    var form = new FormData()
+    let routeCalled = 0
+    let errorCalled = 0
 
-    var routeCalled = 0
-    var errorCalled = 0
+    form.append('avatar', util.file('large'))
 
-    form.append('avatar', util.file('large.jpg'))
-
-    router.post('/profile', upload.single('avatar'), function (req, res, next) {
+    router.post('/profile', upload.single('avatar'), (_, res) => {
       routeCalled++
       res.status(200).end('SUCCESS')
     })
 
-    router.use(function (err, req, res, next) {
-      assert.equal(err.message, 'TEST')
-
+    router.use((_, __, res, ___) => {
       errorCalled++
       res.status(500).end('ERROR')
     })
 
     app.use('/t2', router)
-    submitForm(form, '/t2/profile', function (err, res, body) {
-      assert.ifError(err)
 
-      assert.equal(routeCalled, 0)
-      assert.equal(errorCalled, 1)
-      assert.equal(body.toString(), 'ERROR')
-      assert.equal(res.statusCode, 500)
+    const result = await submitForm(form, '/t2/profile')
 
-      done()
-    })
+    assert.strictEqual(routeCalled, 1)
+    assert.strictEqual(errorCalled, 0)
+    assert.strictEqual(result.body.toString(), 'SUCCESS')
+    assert.strictEqual(result.res.statusCode, 200)
   })
 })
