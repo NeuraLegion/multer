@@ -33,6 +33,7 @@
   "dependencies": {
     "append-field": "^1.0.0",
     "busboy": "^0.3.1",
+    "fs-capacitor": "^6.1.0",
     "fs-temp": "^1.1.1",
     "on-finished": "^2.3.0",
     "pify": "^4.0.1",

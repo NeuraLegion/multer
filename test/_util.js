@@ -75,7 +75,7 @@ exports.assertFile = async (file, fieldName, fileName) => {
   assert.strictEqual(file.detectedMimeType, expected.detectedMimeType)
   assert.strictEqual(file.detectedFileExtension, expected.detectedFileExtension)
 
-  const hash = await hasha.fromStream(file.stream, { algorithm: 'md5' })
+  const hash = await hasha.fromStream(file.createReadStream(), { algorithm: 'md5' })
 
   assert.strictEqual(hash, expected.hash)
 }
