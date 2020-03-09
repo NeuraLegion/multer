@@ -17,7 +17,7 @@ describe('Misc', () => {
     assert.strictEqual(req.file.originalName, filename)
 
     // Ignore content
-    req.file.createReadStream().resume()
+    req.file.toStream().resume()
   })
 
   it('should handle absent filenames', async () => {
@@ -35,7 +35,7 @@ describe('Misc', () => {
     assert.strictEqual(req.file.originalName, undefined)
 
     // Ignore content
-    req.file.createReadStream().resume()
+    req.file.toStream().resume()
   })
 
   it('should present files in same order as they came', async () => {
