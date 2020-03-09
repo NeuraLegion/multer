@@ -50,7 +50,7 @@ declare interface File {
   /**  Location of the uploaded file */
   readonly path: string;
   /**  A Stream of the entire file */
-  readonly stream: Readable;
+  toStream(): Readable;
 }
 
 declare interface MulterOptions {
