@@ -41,7 +41,7 @@ describe('Express Integration', () => {
 
   it('should work with express error handling', async () => {
     const limits = { fileSize: 200 }
-    const upload = new Multer({ limits: limits })
+    const upload = new Multer({ limits })
     const router = new express.Router()
     const form = new FormData()
 

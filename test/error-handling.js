@@ -8,7 +8,7 @@ const util = require('./_util')
 const { Multer, Codes } = require('../lib')
 
 function withLimits (limits, fields) {
-  return new Multer({ limits: limits }).fields(fields)
+  return new Multer({ limits }).fields(fields)
 }
 
 function hasCode (code) {
