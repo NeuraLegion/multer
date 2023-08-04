@@ -93,13 +93,15 @@ exports.submitForm = async (multer, form) => {
   const req = new stream.PassThrough()
 
   req.complete = false
-  form.once('end', () => { req.complete = true })
-
-  form.pipe(req)
   req.headers = {
     'content-type': `multipart/form-data; boundary=${form.getBoundary()}`,
     'content-length': length
   }
+
+  form
+    .once('end', () => { req.complete = true })
+    .once('error', err => req.emit('error', err))
+    .pipe(req)
 
   await pify(multer)(req, null)
   await onFinished(req)

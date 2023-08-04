@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 
 const assert = require('assert')
+const { PassThrough } = require('stream')
 const util = require('./_util')
 const { Multer } = require('../lib')
 const FormData = require('form-data')
@@ -26,10 +27,12 @@ describe('Misc', () => {
     const stream = util.file('small')
 
     // Don't let FormData figure out a filename
-    delete stream.fd
-    delete stream.path
+    const hidden = new PassThrough()
+    stream
+      .once('error', err => hidden.emit('error', err))
+      .pipe(hidden)
 
-    form.append('file', stream, { knownLength: util.knownFileLength('small') })
+    form.append('file', hidden, { knownLength: util.knownFileLength('small') })
 
     const req = await util.submitForm(parser, form)
     assert.strictEqual(req.file.originalName, undefined)

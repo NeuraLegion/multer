@@ -34,7 +34,7 @@
     "@fastify/busboy": "^1.1.0",
     "append-field": "^1.0.0",
     "file-type": "^16.5.3",
-    "fs-temp": "^1.2.1",
+    "fs-temp": "^2.0.1",
     "on-finished": "^2.4.1",
     "type-is": "^1.6.18"
   },
