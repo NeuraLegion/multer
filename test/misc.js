@@ -27,7 +27,10 @@ describe('Misc', () => {
     const stream = util.file('small')
 
     // Don't let FormData figure out a filename
-    const hidden = stream.pipe(new PassThrough())
+    const hidden = new PassThrough()
+    stream
+      .once('error', err => hidden.emit('error', err))
+      .pipe(hidden)
 
     form.append('file', hidden, { knownLength: util.knownFileLength('small') })
 
