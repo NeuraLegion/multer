@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const assert = require('assert')
 const { Multer } = require('../lib')
 const util = require('./_util')
@@ -50,11 +48,13 @@ describe('Express Integration', () => {
 
     form.append('avatar', util.file('large'))
 
+    // eslint-disable-next-line no-unused-vars
     router.post('/profile', upload.single('avatar'), (req, res, next) => {
       routeCalled++
       res.status(200).end('SUCCESS')
     })
 
+    // eslint-disable-next-line no-unused-vars
     router.use((err, req, res, next) => {
       assert.strictEqual(err.code, 'LIMIT_FILE_SIZE')
 
@@ -87,7 +87,8 @@ describe('Express Integration', () => {
       res.status(200).end('SUCCESS')
     })
 
-    router.use((_, __, res, ___) => {
+    // eslint-disable-next-line no-unused-vars
+    router.use((_, __, res, _next) => {
       errorCalled++
       res.status(500).end('ERROR')
     })
