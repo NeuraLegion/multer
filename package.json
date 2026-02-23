@@ -39,22 +39,27 @@
     "type-is": "^1.6.18"
   },
   "devDependencies": {
-    "@commitlint/cli": "^17.0.3",
-    "@commitlint/config-conventional": "^17.0.3",
-    "@types/node": "^12.12.29",
-    "express": "^4.18.1",
-    "form-data": "^4.0.0",
+    "@commitlint/cli": "^17.8.0",
+    "@commitlint/config-conventional": "^17.8.0",
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-n": "^17.24.0",
+    "eslint-plugin-promise": "^6.6.0",
+    "express": "^4.21.3",
+    "form-data": "^4.0.4",
     "get-stream": "^6.0.1",
+    "globals": "^17.3.0",
     "hasha": "^5.2.2",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
-    "lint-staged": "^13.0.3",
-    "mocha": "^10.0.0",
+    "lint-staged": "^16.2.7",
+    "mocha": "^11.0.0",
     "pify": "^4.0.1",
     "pump": "^3.0.0",
     "recursive-nullify": "^1.0.0",
-    "semantic-release": "^19.0.3",
-    "standard": "^17.0.0",
+    "semantic-release": "^25.0.3",
     "testdata-w3c-json-form": "^1.0.0"
   },
   "commitlint": {
@@ -63,12 +68,10 @@
     ]
   },
   "lint-staged": {
-    "*.{js}": [
-      "standard --fix"
-    ]
+    "*.js": ["eslint --fix"]
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=24"
   },
   "files": [
     "LICENSE",
@@ -79,7 +82,11 @@
   "scripts": {
     "semantic-release": "semantic-release",
     "test": "mocha",
-    "lint": "standard {lib,test}/**/*.js",
+    "lint": "eslint {lib,test}/**/*.js",
     "prepare": "is-ci || husky install"
+  },
+  "overrides": {
+    "minimatch": "^10.2.1",
+    "glob": "^13.0.0"
   }
 }

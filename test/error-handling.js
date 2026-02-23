@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const FormData = require('form-data')
 const pify = require('pify')
 const assert = require('assert')
