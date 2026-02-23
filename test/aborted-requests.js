@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const util = require('./_util')
 const { Multer, Codes } = require('../lib')
 const FormData = require('form-data')

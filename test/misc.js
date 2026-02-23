@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const assert = require('assert')
 const { PassThrough } = require('stream')
 const util = require('./_util')

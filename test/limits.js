@@ -1,5 +1,3 @@
-/* eslint-env mocha */
-
 const assert = require('assert')
 const FormData = require('form-data')
 const util = require('./_util')
