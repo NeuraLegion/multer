@@ -194,5 +194,32 @@ describe('Error Handling', () => {
       util.submitForm(parser, form),
       hasCode(Codes.LIMIT_FILE_SIZE)
     )
-  })
+  });
+
+  ['""', ''].forEach((name) =>
+    it(`should notify of missing field name for file upload (name=${name})`, async () => {
+      const req = new stream.PassThrough()
+      const upload = new Multer().any()
+      const boundary = 'AaB03x'
+      const body = [
+        `--${boundary}`,
+        `Content-Disposition: form-data; name=${name}; filename="test.dat"`,
+        'Content-Type: application/octet-stream',
+        '',
+        'hello',
+        `--${boundary}--`
+      ].join('\r\n')
+
+      req.headers = {
+        'content-type': `multipart/form-data; boundary=${boundary}`,
+        'content-length': body.length
+      }
+
+      req.end(body)
+
+      await assert.rejects(
+        pify(upload)(req, null),
+        hasCode(Codes.MISSING_FIELD_NAME)
+      )
+    }))
 })
