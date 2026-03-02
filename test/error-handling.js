@@ -2,6 +2,9 @@ const FormData = require('form-data')
 const pify = require('pify')
 const assert = require('assert')
 const stream = require('stream')
+const fs = require('fs')
+const os = require('os')
+const path = require('path')
 const util = require('./_util')
 const { Multer, Codes } = require('../lib')
 
@@ -68,6 +71,83 @@ describe('Error Handling', () => {
     await assert.rejects(
       util.submitForm(parser, form),
       hasCode(Codes.LIMIT_FILE_COUNT)
+    )
+  })
+
+  it('should not leave orphaned temp files when an error occurs during multi-file upload', async () => {
+    // Upload two files with a files:1 limit — busboy emits filesLimit after
+    // the first file, so the first file's temp write is in-flight or complete
+    // when the error is raised.  The cleanup must unlink it.
+    const tmpDir = os.tmpdir()
+    const before = new Set(fs.readdirSync(tmpDir))
+
+    const form = new FormData()
+    form.append('file', util.file('large'))
+    form.append('file2', util.file('tiny'))
+
+    const parser = new Multer({ limits: { files: 1 } }).any()
+    const length = await pify(form.getLength).call(form)
+    const req = new stream.PassThrough()
+
+    req.headers = {
+      'content-type': `multipart/form-data; boundary=${form.getBoundary()}`,
+      'content-length': length
+    }
+
+    await assert.rejects(
+      pify(parser)(form.pipe(req), null),
+      err => err.code === Codes.LIMIT_FILE_COUNT
+    )
+
+    // Wait a tick for async fs.unlink callbacks to settle
+    await new Promise(resolve => setImmediate(resolve))
+
+    const after = new Set(fs.readdirSync(tmpDir))
+    const leaked = [...after].filter(f => !before.has(f))
+
+    assert.strictEqual(
+      leaked.length,
+      0,
+      `Orphaned temp files left behind: ${leaked.map(f => path.join(tmpDir, f)).join(', ')}`
+    )
+  })
+
+  it('should not leave orphaned temp files when fileFilter rejects a file', async () => {
+    // Trigger LIMIT_UNEXPECTED_FILE (fileFilter throws synchronously) while a
+    // valid file is already in flight — the valid file's temp write must be
+    // cleaned up because the caller never receives it.
+    const tmpDir = os.tmpdir()
+    const before = new Set(fs.readdirSync(tmpDir))
+
+    const form = new FormData()
+    form.append('allowed', util.file('large'))   // valid field
+    form.append('blocked', util.file('tiny'))    // unexpected field → throws
+
+    // Only 'allowed' is permitted
+    const parser = new Multer().fields([{ name: 'allowed', maxCount: 1 }])
+
+    const length = await pify(form.getLength).call(form)
+    const req = new stream.PassThrough()
+
+    req.headers = {
+      'content-type': `multipart/form-data; boundary=${form.getBoundary()}`,
+      'content-length': length
+    }
+
+    await assert.rejects(
+      pify(parser)(form.pipe(req), null),
+      err => err.code === Codes.LIMIT_UNEXPECTED_FILE
+    )
+
+    await new Promise(resolve => setImmediate(resolve))
+
+    const after = new Set(fs.readdirSync(tmpDir))
+    const leaked = [...after].filter(f => !before.has(f))
+
+    assert.strictEqual(
+      leaked.length,
+      0,
+      `Orphaned temp files left behind: ${leaked.map(f => path.join(tmpDir, f)).join(', ')}`
     )
   })
 
